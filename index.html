@@ -382,13 +382,6 @@ svg {
   text-align: center;
 }
 
-.kiosk-label {
-  margin-bottom: 18px;
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 720;
-}
-
 .kiosk-panel h1 {
   max-width: 620px;
   font-size: clamp(44px, 7vw, 76px);
@@ -611,6 +604,14 @@ h2 {
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 8px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.search-box:focus-within {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
 .search-box-large {
@@ -738,11 +739,19 @@ input::placeholder {
   color: #374151;
   font-size: 13px;
   font-weight: 680;
+  line-height: 18px;
+}
+
+.new-attendee-form label > span,
+.new-session-form label > span {
+  display: block;
+  min-height: 18px;
 }
 
 .new-attendee-form input,
 .new-session-form input,
 .new-session-form select {
+  box-sizing: border-box;
   width: 100%;
   height: 42px;
   padding: 0 12px;
@@ -750,6 +759,24 @@ input::placeholder {
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 8px;
+  outline: 0;
+  line-height: 42px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.new-attendee-form input:focus,
+.new-session-form input:focus,
+.new-session-form select:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.new-attendee-form input:focus-visible,
+.new-session-form input:focus-visible,
+.new-session-form select:focus-visible,
+.age-toggle button:focus-visible {
   outline: 0;
 }
 
@@ -773,9 +800,11 @@ input::placeholder {
   color: #374151;
   font-size: 13px;
   font-weight: 680;
+  line-height: 18px;
 }
 
 .age-toggle button {
+  box-sizing: border-box;
   height: 42px;
   color: #374151;
   background: #ffffff;
@@ -910,6 +939,21 @@ input::placeholder {
   text-align: center;
 }
 
+.empty-chart {
+  display: grid;
+  min-height: 210px;
+  place-items: center;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.empty-table-cell {
+  padding: 24px 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
 .rail-chart .line-chart {
   max-height: 160px;
 }
@@ -920,6 +964,101 @@ input::placeholder {
   justify-content: space-between;
   gap: 24px;
   margin-bottom: 28px;
+}
+
+.range-picker {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.range-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px;
+  color: var(--ink);
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.range-button:hover {
+  background: var(--soft);
+}
+
+.range-button svg {
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+}
+
+.range-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 35;
+  display: grid;
+  gap: 12px;
+  width: 310px;
+  padding: 10px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.range-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.range-preset-grid button {
+  min-height: 36px;
+  padding: 8px 10px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.range-preset-grid button:hover,
+.range-preset-grid button.is-active {
+  background: var(--soft);
+  border-color: var(--line);
+}
+
+.range-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.range-fields label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.range-fields input {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 0 8px;
+  color: var(--ink);
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 13px;
 }
 
 .quiet-stats {
@@ -994,10 +1133,55 @@ input::placeholder {
   stroke-width: 2.5;
 }
 
+.trend-point {
+  outline: 0;
+}
+
+.trend-hit {
+  fill: rgba(0, 0, 0, 0);
+  pointer-events: all;
+  stroke: none;
+  cursor: default;
+}
+
 .trend-dot {
   fill: var(--navy);
   stroke: #ffffff;
   stroke-width: 2;
+  transition:
+    r 160ms ease,
+    fill 160ms ease;
+}
+
+.point-tooltip {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.point-tooltip rect {
+  fill: var(--ink);
+  stroke: none;
+}
+
+.point-tooltip text {
+  fill: #ffffff;
+  stroke: none;
+  font-size: 13px;
+  font-weight: 760;
+  text-anchor: middle;
+}
+
+.trend-point:hover .point-tooltip,
+.trend-point:focus .point-tooltip,
+.trend-point[data-active="true"] .point-tooltip {
+  opacity: 1;
+}
+
+.trend-point:hover .trend-dot,
+.trend-point:focus .trend-dot,
+.trend-point[data-active="true"] .trend-dot {
+  fill: var(--blue);
 }
 
 .player-split {
@@ -1350,11 +1534,30 @@ td {
 
   .session-tools,
   .session-picker,
+  .range-picker,
+  .range-button,
   .select-wrap,
   .select-wrap select,
   .button,
   .export-wrap {
     width: 100%;
+  }
+
+  .page-head {
+    display: grid;
+    align-items: start;
+    gap: 16px;
+  }
+
+  .page-head .range-picker,
+  .page-head .range-button {
+    width: 100%;
+  }
+
+  .range-menu {
+    left: 0;
+    right: auto;
+    width: min(calc(100vw - 24px), 340px);
   }
 
   .app-view,
@@ -1631,6 +1834,12 @@ const DEFAULT_VENUES = [
 
 const STORAGE_KEY = "mkchess-attendance-v1";
 const AGE_GROUPS = ["Junior", "Adult"];
+const DATE_RANGE_PRESETS = [
+  { id: "all", label: "All" },
+  { id: "this-month", label: "This month" },
+  { id: "last-30", label: "Last 30 days" },
+  { id: "last-90", label: "Last 90 days" },
+];
 const app = document.querySelector("#app");
 const workbookInput = document.querySelector("#workbook-import");
 const jsonInput = document.querySelector("#json-import");
@@ -1641,9 +1850,11 @@ let state = loadState();
 let activeSessionId = state.activeSessionId || latestSessionId(state.sessions);
 let activeView = "signin";
 let activeAgeGroup = "Junior";
+let analyticsRange = normalizeAnalyticsRange(state.analyticsRange);
 let searchQuery = "";
 let exportMenuOpen = false;
 let sessionMenuOpen = false;
+let rangeMenuOpen = false;
 let modalOpen = false;
 let newPlayerModalOpen = false;
 let toastTimer = null;
@@ -1698,12 +1909,14 @@ function loadState() {
     profiles: [],
     attendance: [],
     activeSessionId: todaySession.id,
+    analyticsRange: { preset: "all", start: "", end: "" },
   };
 
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
     if (!saved) return defaultState;
     const savedSessions = Array.isArray(saved.sessions) ? saved.sessions : [];
+    const normalizedPeople = normalizeProfileState(saved.profiles, saved.attendance);
     const mergedSessions = mergeSessions([todaySession, ...savedSessions], LEGACY_SESSIONS);
     const activeId = mergedSessions.some((session) => session.id === saved.activeSessionId)
       ? saved.activeSessionId
@@ -1712,9 +1925,10 @@ function loadState() {
       ...defaultState,
       ...saved,
       sessions: mergedSessions,
-      profiles: Array.isArray(saved.profiles) ? saved.profiles : [],
-      attendance: Array.isArray(saved.attendance) ? saved.attendance : [],
+      profiles: normalizedPeople.profiles,
+      attendance: normalizedPeople.attendance,
       activeSessionId: activeId,
+      analyticsRange: normalizeAnalyticsRange(saved.analyticsRange),
     };
   } catch {
     return defaultState;
@@ -1745,8 +1959,29 @@ function localDateString(date) {
   return `${year}-${month}-${day}`;
 }
 
+function isDateValue(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
+}
+
+function addDays(date, days) {
+  const value = new Date(`${date}T00:00:00`);
+  value.setDate(value.getDate() + days);
+  return localDateString(value);
+}
+
+function normalizeAnalyticsRange(range) {
+  const value = range && typeof range === "object" ? range : {};
+  const presetIds = new Set([...DATE_RANGE_PRESETS.map((preset) => preset.id), "custom"]);
+  return {
+    preset: presetIds.has(value.preset) ? value.preset : "all",
+    start: isDateValue(value.start) ? value.start : "",
+    end: isDateValue(value.end) ? value.end : "",
+  };
+}
+
 function persist() {
   state.activeSessionId = activeSessionId;
+  state.analyticsRange = analyticsRange;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
@@ -1794,8 +2029,144 @@ function normalizeEmail(value) {
   return email;
 }
 
+function normalizePhone(value) {
+  const phone = normalizeText(value);
+  if (!phone || /as above|same as|same/i.test(phone)) return "";
+  return phone;
+}
+
+function phoneKey(value) {
+  return normalizePhone(value).toLowerCase().replace(/[^a-z0-9+]/g, "");
+}
+
+function uniqueContactValues(values, displayNormalizer, keyNormalizer = displayNormalizer) {
+  const seen = new Set();
+  const result = [];
+  for (const value of values.flat()) {
+    const display = displayNormalizer(value);
+    const key = keyNormalizer(display);
+    if (!display || !key || seen.has(key)) continue;
+    seen.add(key);
+    result.push(display);
+  }
+  return result;
+}
+
+function getProfileEmails(profile) {
+  if (!profile) return [];
+  return uniqueContactValues(
+    [profile.email, profile.emails || [], profile.contactEmails || []],
+    normalizeEmail,
+  );
+}
+
+function getProfilePhones(profile) {
+  if (!profile) return [];
+  return uniqueContactValues(
+    [profile.emergencyPhone, profile.emergencyPhones || [], profile.phones || []],
+    normalizePhone,
+    phoneKey,
+  );
+}
+
+function setProfileContacts(profile, emails, phones) {
+  const cleanEmails = uniqueContactValues(emails, normalizeEmail);
+  const cleanPhones = uniqueContactValues(phones, normalizePhone, phoneKey);
+  profile.email = cleanEmails[0] || "";
+  profile.emails = cleanEmails;
+  profile.emergencyPhone = cleanPhones[0] || "";
+  profile.emergencyPhones = cleanPhones;
+}
+
 function profileKey(profile) {
-  return normalizeEmail(profile.email) || normalizeText(profile.name).toLowerCase();
+  return normalizeText(profile && profile.name).toLowerCase() || normalizeEmail(profile && profile.email);
+}
+
+function normalizeProfile(profile) {
+  const normalized = {
+    ...profile,
+    id: (profile && profile.id) || uid("p"),
+    name: normalizeText(profile && profile.name),
+    ageGroup: normalizeAgeGroup(profile && profile.ageGroup),
+    notes: normalizeText(profile && profile.notes),
+    email: "",
+    emails: [],
+    emergencyPhone: "",
+    emergencyPhones: [],
+  };
+  return mergeProfileInfo(normalized, profile || {});
+}
+
+function mergeProfileInfo(target, source) {
+  const name = normalizeText(source && source.name);
+  if (!target.name && name) target.name = name;
+
+  setProfileContacts(
+    target,
+    [...getProfileEmails(target), ...getProfileEmails(source)],
+    [...getProfilePhones(target), ...getProfilePhones(source)],
+  );
+
+  const targetAge = normalizeAgeGroup(target.ageGroup);
+  const sourceAge = normalizeAgeGroup(source && source.ageGroup);
+  target.ageGroup = targetAge === "Unknown" && sourceAge !== "Unknown" ? sourceAge : targetAge;
+
+  const notes = uniqueContactValues([target.notes, source && source.notes], normalizeText).join("; ");
+  target.notes = notes;
+
+  if (source && source.createdAt && (!target.createdAt || source.createdAt < target.createdAt)) {
+    target.createdAt = source.createdAt;
+  }
+  if (source && source.lastSeenAt && (!target.lastSeenAt || source.lastSeenAt > target.lastSeenAt)) {
+    target.lastSeenAt = source.lastSeenAt;
+  }
+  return target;
+}
+
+function mergeProfileCopies(profiles) {
+  const byKey = new Map();
+  const remap = new Map();
+  for (const rawProfile of profiles.filter(Boolean)) {
+    const profile = normalizeProfile(rawProfile);
+    const key = profileKey(profile) || profile.id || uid("profile");
+    const existing = byKey.get(key);
+    if (existing) {
+      mergeProfileInfo(existing, profile);
+      remap.set(profile.id, existing.id);
+    } else {
+      byKey.set(key, profile);
+      remap.set(profile.id, profile.id);
+    }
+  }
+  return {
+    profiles: [...byKey.values()].sort((a, b) => a.name.localeCompare(b.name)),
+    remap,
+  };
+}
+
+function normalizeProfileState(profiles, attendance = []) {
+  const merged = mergeProfileCopies(Array.isArray(profiles) ? profiles : []);
+  const profileById = new Map(merged.profiles.map((profile) => [profile.id, profile]));
+  const normalizedAttendance = (Array.isArray(attendance) ? attendance : []).map((record) => {
+    const attendeeId = merged.remap.get(record.attendeeId) || record.attendeeId;
+    const profile = profileById.get(attendeeId);
+    return {
+      ...record,
+      attendeeId,
+      name: record.name || (profile && profile.name) || "",
+      ageGroup: record.ageGroup || (profile && profile.ageGroup) || "Unknown",
+    };
+  });
+  return { profiles: merged.profiles, attendance: normalizedAttendance };
+}
+
+function formatProfileContacts(profile) {
+  const emails = getProfileEmails(profile);
+  const phones = getProfilePhones(profile);
+  const parts = [];
+  if (emails.length) parts.push(emails.join(", "));
+  if (phones.length) parts.push(phones.join(", "));
+  return parts.join(" · ") || "No contact";
 }
 
 function escapeHtml(value) {
@@ -1819,6 +2190,20 @@ function formatShortDate(date) {
   return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "short",
+  }).format(new Date(`${date}T00:00:00`));
+}
+
+function formatDayMonth(date) {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+  }).format(new Date(`${date}T00:00:00`));
+}
+
+function formatMonthYear(date) {
+  return new Intl.DateTimeFormat("en-GB", {
+    month: "short",
+    year: "numeric",
   }).format(new Date(`${date}T00:00:00`));
 }
 
@@ -1889,45 +2274,101 @@ function sessionAgeCounts(session) {
   };
 }
 
+function getSessionDateBounds() {
+  const dated = state.sessions
+    .map((session) => session.date)
+    .filter(isDateValue)
+    .sort((a, b) => a.localeCompare(b));
+  const today = localDateString(new Date());
+  return {
+    start: dated[0] || today,
+    end: dated[dated.length - 1] || today,
+  };
+}
+
+function resolveAnalyticsRange() {
+  const bounds = getSessionDateBounds();
+  const selected = normalizeAnalyticsRange(analyticsRange);
+  const end = bounds.end;
+  let start = bounds.start;
+
+  if (selected.preset === "this-month") {
+    start = `${end.slice(0, 7)}-01`;
+  } else if (selected.preset === "last-30") {
+    start = addDays(end, -29);
+  } else if (selected.preset === "last-90") {
+    start = addDays(end, -89);
+  } else if (selected.preset === "custom") {
+    start = selected.start || bounds.start;
+  }
+
+  const resolvedEnd = selected.preset === "custom" ? selected.end || bounds.end : end;
+  const resolved = start <= resolvedEnd ? { start, end: resolvedEnd } : { start: resolvedEnd, end: start };
+  return {
+    ...selected,
+    ...resolved,
+    bounds,
+    isAll: selected.preset === "all" && resolved.start <= bounds.start && resolved.end >= bounds.end,
+  };
+}
+
+function dateInRange(date, range) {
+  return isDateValue(date) && date >= range.start && date <= range.end;
+}
+
+function formatRangeLabel(range) {
+  if (range.isAll) return formatMonthRange(range.start, range.end);
+  if (range.start === range.end) return formatDate(range.start);
+  if (range.start.slice(0, 4) === range.end.slice(0, 4)) {
+    return `${formatDayMonth(range.start)} - ${formatDate(range.end)}`;
+  }
+  return `${formatDate(range.start)} - ${formatDate(range.end)}`;
+}
+
+function formatMonthRange(start, end) {
+  if (start.slice(0, 7) === end.slice(0, 7)) return formatMonthYear(end);
+  if (start.slice(0, 4) === end.slice(0, 4)) {
+    return `${formatMonthYear(start).replace(` ${start.slice(0, 4)}`, "")} - ${formatMonthYear(end)}`;
+  }
+  return `${formatMonthYear(start)} - ${formatMonthYear(end)}`;
+}
+
 function buildAnalytics() {
+  const range = resolveAnalyticsRange();
   const sessions = [...state.sessions].sort((a, b) => a.date.localeCompare(b.date));
   const counts = sessions
+    .filter((session) => dateInRange(session.date, range))
     .map((session) => ({ ...session, count: sessionCount(session) }))
     .filter((session) => !(session.source === "current" && session.count === 0));
   const legacyMode = !state.hasPrivateImport;
-  const localNonLegacyRecords = state.attendance.filter((record) => {
+  const recordsInRange = state.attendance.filter((record) => {
     const session = sessionById(record.sessionId);
-    return !session || session.source !== "legacy-import";
+    return session && dateInRange(session.date, range);
   });
-  const totalSignIns = legacyMode
-    ? LEGACY_SUMMARY.totalSignIns + localNonLegacyRecords.length
-    : state.attendance.length;
-  const uniquePlayers = legacyMode
-    ? LEGACY_SUMMARY.uniquePlayers + state.profiles.length
-    : state.profiles.length;
-
-  const groupTotals = state.profiles.reduce(
-    (acc, profile) => {
-      if (profile.ageGroup === "Junior") acc.junior += 1;
-      else if (profile.ageGroup === "Adult") acc.adult += 1;
-      else acc.unknown += 1;
-      return acc;
-    },
-    {
-      junior: legacyMode ? LEGACY_SUMMARY.juniorPlayers : 0,
-      adult: legacyMode ? LEGACY_SUMMARY.adultPlayers : 0,
-      unknown: legacyMode ? LEGACY_SUMMARY.unknownPlayers : 0,
-    },
-  );
-
-  const perProfile = state.attendance.reduce((map, record) => {
+  const totalSignIns = counts.reduce((sum, session) => sum + session.count, 0);
+  const perProfile = recordsInRange.reduce((map, record) => {
     map.set(record.attendeeId, (map.get(record.attendeeId) || 0) + 1);
     return map;
   }, new Map());
+  const uniquePlayers = legacyMode && !range.isAll ? null : legacyMode ? LEGACY_SUMMARY.uniquePlayers + state.profiles.length : perProfile.size;
+
+  const groupTotals = counts.reduce(
+    (acc, profile) => {
+      const ages = sessionAgeCounts(profile);
+      acc.junior += ages.junior;
+      acc.adult += ages.adult;
+      acc.unknown += ages.unknown;
+      return acc;
+    },
+    { junior: 0, adult: 0, unknown: 0 },
+  );
+
   const returningPlayers = legacyMode
-    ? LEGACY_SUMMARY.returnedPlayers
+    ? range.isAll
+      ? LEGACY_SUMMARY.returnedPlayers
+      : null
     : [...perProfile.values()].filter((count) => count > 1).length;
-  const retentionRate = uniquePlayers ? (returningPlayers / uniquePlayers) * 100 : 0;
+  const retentionRate = uniquePlayers && returningPlayers != null ? (returningPlayers / uniquePlayers) * 100 : null;
 
   const typeCounts = counts.reduce((acc, session) => {
     acc[session.type] = (acc[session.type] || 0) + 1;
@@ -1956,6 +2397,8 @@ function buildAnalytics() {
 
   return {
     sessions: counts,
+    range,
+    periodLabel: formatRangeLabel(range),
     totalSignIns,
     uniquePlayers,
     averageSession: counts.length ? totalSignIns / counts.length : 0,
@@ -1969,6 +2412,7 @@ function buildAnalytics() {
 }
 
 function render() {
+  const wasSearchFocused = document.activeElement && document.activeElement.id === "attendee-search";
   const analytics = buildAnalytics();
   const activeSession = sessionById(activeSessionId);
   const view =
@@ -1986,7 +2430,7 @@ function render() {
     ${newPlayerModalOpen ? renderNewPlayerModal() : ""}
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   `;
-  restoreSearchField();
+  restoreSearchField(wasSearchFocused);
 }
 
 function renderHeader(activeSession) {
@@ -2064,7 +2508,6 @@ function renderSignInPage(session, analytics) {
   return `
     <main class="kiosk-view">
       <section class="kiosk-panel" aria-labelledby="signin-title">
-        <p class="kiosk-label">Sign in</p>
         <h1 id="signin-title">Who is here today?</h1>
         <div class="kiosk-search">
           <label class="search-box search-box-large">
@@ -2086,6 +2529,8 @@ function renderSignInPage(session, analytics) {
 }
 
 function renderTodaySummary(session, currentRecords, analytics) {
+  const uniqueValue = analytics.uniquePlayers == null ? "-" : analytics.uniquePlayers;
+  const retentionValue = analytics.retentionRate == null ? "-" : `${analytics.retentionRate.toFixed(0)}%`;
   return `
     <section class="today-card">
       <span class="summary-label">Today</span>
@@ -2099,7 +2544,7 @@ function renderTodaySummary(session, currentRecords, analytics) {
       </div>
       <div class="rail-stat">
         <span>Unique players</span>
-        <strong>${analytics.uniquePlayers}</strong>
+        <strong>${uniqueValue}</strong>
       </div>
       <div class="rail-stat">
         <span>Average</span>
@@ -2107,7 +2552,7 @@ function renderTodaySummary(session, currentRecords, analytics) {
       </div>
       <div class="rail-stat">
         <span>Retention</span>
-        <strong>${analytics.retentionRate.toFixed(0)}%</strong>
+        <strong>${retentionValue}</strong>
       </div>
     </section>
     <section class="rail-block">
@@ -2147,21 +2592,26 @@ function renderTodaySummary(session, currentRecords, analytics) {
 function renderInsightsPage(analytics) {
   const junior = analytics.groupTotals.junior;
   const adult = analytics.groupTotals.adult;
+  const uniqueValue = analytics.uniquePlayers == null ? "-" : analytics.uniquePlayers;
+  const uniqueMeta = analytics.uniquePlayers == null ? "Needs roster" : analytics.range.isAll ? "All time" : "Selected period";
+  const retentionValue = analytics.retentionRate == null ? "-" : `${analytics.retentionRate.toFixed(0)}%`;
+  const retentionMeta = analytics.returningPlayers == null ? "Needs roster" : `${analytics.returningPlayers} returned`;
 
   return `
     <main class="app-view insights-view">
       <section class="page-head">
         <div>
           <h1>Insights</h1>
-          <p>${analytics.sessions.length} sessions &middot; Feb - Jun 2026</p>
+          <p>${escapeHtml(analytics.periodLabel)}</p>
         </div>
+        ${renderDateRangePicker(analytics)}
       </section>
 
       <section class="quiet-stats">
-        ${renderQuietStat("Attendance", analytics.totalSignIns, "Total sign-ins")}
-        ${renderQuietStat("Unique players", analytics.uniquePlayers, "All time")}
+        ${renderQuietStat("Attendance", analytics.totalSignIns, `${analytics.sessions.length} sessions`)}
+        ${renderQuietStat("Unique players", uniqueValue, uniqueMeta)}
         ${renderQuietStat("Average", analytics.averageSession.toFixed(1), "Per session")}
-        ${renderQuietStat("Retention", `${analytics.retentionRate.toFixed(0)}%`, `${analytics.returningPlayers} returned`)}
+        ${renderQuietStat("Retention", retentionValue, retentionMeta)}
       </section>
 
       <section class="insight-grid">
@@ -2174,8 +2624,8 @@ function renderInsightsPage(analytics) {
         </article>
         <article class="panel">
           <div class="panel-title title-soft">
-            <h2>Players</h2>
-            <span>Junior / Adult</span>
+            <h2>Age split</h2>
+            <span>Sign-ins</span>
           </div>
           <div class="player-split">
             <div><strong>${junior}</strong><span>Junior</span></div>
@@ -2206,6 +2656,51 @@ function renderInsightsPage(analytics) {
   `;
 }
 
+function renderDateRangePicker(analytics) {
+  const range = analytics.range;
+  const min = escapeHtml(range.bounds.start);
+  const max = escapeHtml(range.bounds.end);
+  return `
+    <div class="range-picker">
+      <button class="range-button" type="button" data-action="toggle-range-menu" aria-expanded="${rangeMenuOpen}">
+        ${icons.calendar}
+        <span>${escapeHtml(analytics.periodLabel)}</span>
+        ${icons.chevron}
+      </button>
+      ${
+        rangeMenuOpen
+          ? `<div class="range-menu">
+              <div class="range-preset-grid">
+                ${DATE_RANGE_PRESETS.map(
+                  (preset) => `
+                    <button
+                      type="button"
+                      class="${analyticsRange.preset === preset.id ? "is-active" : ""}"
+                      data-action="set-range-preset"
+                      data-range-preset="${escapeHtml(preset.id)}"
+                    >
+                      ${escapeHtml(preset.label)}
+                    </button>
+                  `,
+                ).join("")}
+              </div>
+              <div class="range-fields">
+                <label>
+                  <span>From</span>
+                  <input data-range-field="start" type="date" value="${escapeHtml(range.start)}" min="${min}" max="${max}" />
+                </label>
+                <label>
+                  <span>To</span>
+                  <input data-range-field="end" type="date" value="${escapeHtml(range.end)}" min="${min}" max="${max}" />
+                </label>
+              </div>
+            </div>`
+          : ""
+      }
+    </div>
+  `;
+}
+
 function renderQuietStat(label, value, meta) {
   return `
     <article class="quiet-stat">
@@ -2219,13 +2714,14 @@ function renderQuietStat(label, value, meta) {
 function renderPeoplePage(analytics) {
   const checkedInIds = new Set(getAttendanceForSession(activeSessionId).map((record) => record.attendeeId));
   const people = getSearchResults(searchQuery, checkedInIds);
+  const peopleCount = state.profiles.length || analytics.uniquePlayers || 0;
 
   return `
     <main class="app-view people-view">
       <section class="page-head">
         <div>
           <h1>People</h1>
-          <p>${state.profiles.length || analytics.uniquePlayers} player profiles</p>
+          <p>${peopleCount} player profiles</p>
         </div>
         <button class="button button-outline" data-action="import-workbook">${icons.import}<span>Import</span></button>
       </section>
@@ -2248,21 +2744,24 @@ function renderDashboard(analytics) {
   const totalKnown = junior + adult;
   const juniorShare = totalKnown ? Math.round((junior / totalKnown) * 100) : 0;
   const adultShare = totalKnown ? 100 - juniorShare : 0;
+  const uniqueValue = analytics.uniquePlayers == null ? "-" : analytics.uniquePlayers;
+  const retentionValue = analytics.retentionRate == null ? "-" : `${analytics.retentionRate.toFixed(0)}%`;
+  const retentionMeta = analytics.returningPlayers == null ? "Needs roster" : `${analytics.returningPlayers} players returned`;
 
   return `
     <div class="section-heading">
       <div>
         <h1>Attendance overview</h1>
-        <p>${icons.calendar} ${analytics.sessions.length} sessions <span></span> Feb - Jun 2026</p>
+        <p>${icons.calendar} ${analytics.sessions.length} sessions <span></span> ${escapeHtml(analytics.periodLabel)}</p>
       </div>
     </div>
 
     <div class="kpi-grid">
       ${renderKpi("Total sign-ins", analytics.totalSignIns, "All sessions", icons.users, "blue")}
-      ${renderKpi("Unique players", analytics.uniquePlayers, "All time", icons.target, "green")}
+      ${renderKpi("Unique players", uniqueValue, analytics.uniquePlayers == null ? "Needs roster" : "Selected period", icons.target, "green")}
       ${renderKpi("Junior / Adult", `${junior} / ${adult}`, `${juniorShare}% / ${adultShare}%`, icons.users, "amber")}
       ${renderKpi("Average session", analytics.averageSession.toFixed(1), "Sign-ins per session", icons.chart, "indigo")}
-      ${renderKpi("Retention", `${analytics.retentionRate.toFixed(0)}%`, `${analytics.returningPlayers} players returned`, icons.refresh, "green")}
+      ${renderKpi("Retention", retentionValue, retentionMeta, icons.refresh, "green")}
     </div>
 
     <div class="analytics-layout">
@@ -2285,7 +2784,7 @@ function renderDashboard(analytics) {
     <div class="lower-grid">
       <article class="panel">
         <div class="panel-title">
-          <h2>Sessions (Feb - Jun 2026)</h2>
+          <h2>Sessions</h2>
           <span>${analytics.sessions.length} total</span>
         </div>
         ${renderSessionsTable(analytics.sessions)}
@@ -2316,6 +2815,10 @@ function renderKpi(label, value, meta, icon, tone) {
 }
 
 function renderLineChart(sessions) {
+  if (!sessions.length) {
+    return `<div class="empty-chart">No sessions in this period</div>`;
+  }
+
   const width = 760;
   const height = 260;
   const padding = { top: 18, right: 20, bottom: 54, left: 42 };
@@ -2341,15 +2844,23 @@ function renderLineChart(sessions) {
         .join("")}
       <polyline points="${polyline}" class="trend-line"/>
       ${points
-        .map(
-          (point) => `
-          <g>
+        .map((point) => {
+          const tooltipWidth = String(point.count).length > 2 ? 54 : 44;
+          const tooltipX = Math.min(width - padding.right - tooltipWidth, Math.max(6, point.x - tooltipWidth / 2));
+          const tooltipY = Math.max(6, point.y - 38);
+          return `
+          <g class="trend-point" tabindex="0" aria-label="${escapeHtml(`${point.count} sign-ins on ${formatDate(point.date)}`)}">
+            <circle cx="${point.x}" cy="${point.y}" r="13" class="trend-hit"/>
             <circle cx="${point.x}" cy="${point.y}" r="4.5" class="trend-dot"/>
+            <g class="point-tooltip">
+              <rect x="${tooltipX}" y="${tooltipY}" width="${tooltipWidth}" height="26" rx="7"></rect>
+              <text x="${tooltipX + tooltipWidth / 2}" y="${tooltipY + 17}">${escapeHtml(point.count)}</text>
+            </g>
             <text x="${point.x}" y="${height - 28}" class="x-label">${escapeHtml(formatShortDate(point.date))}</text>
             <text x="${point.x}" y="${height - 12}" class="x-label">${escapeHtml(point.date.slice(0, 4))}</text>
           </g>
-        `,
-        )
+        `;
+        })
         .join("")}
     </svg>
   `;
@@ -2392,22 +2903,26 @@ function renderSessionsTable(sessions) {
           </tr>
         </thead>
         <tbody>
-          ${[...sessions]
-            .sort((a, b) => b.date.localeCompare(a.date))
-            .map((session) => {
-              const ages = sessionAgeCounts(session);
-              return `
-                <tr>
-                  <td>${escapeHtml(formatDate(session.date))}</td>
-                  <td><span class="tag ${session.type.toLowerCase()}">${escapeHtml(session.type)}</span></td>
-                  <td>${escapeHtml(session.venue)}</td>
-                  <td>${session.count}</td>
-                  <td>${ages.junior}</td>
-                  <td>${ages.adult}</td>
-                </tr>
-              `;
-            })
-            .join("")}
+          ${
+            sessions.length
+              ? [...sessions]
+                  .sort((a, b) => b.date.localeCompare(a.date))
+                  .map((session) => {
+                    const ages = sessionAgeCounts(session);
+                    return `
+                      <tr>
+                        <td>${escapeHtml(formatDate(session.date))}</td>
+                        <td><span class="tag ${session.type.toLowerCase()}">${escapeHtml(session.type)}</span></td>
+                        <td>${escapeHtml(session.venue)}</td>
+                        <td>${session.count}</td>
+                        <td>${ages.junior}</td>
+                        <td>${ages.adult}</td>
+                      </tr>
+                    `;
+                  })
+                  .join("")
+              : `<tr><td colspan="6" class="empty-table-cell">No sessions in this period</td></tr>`
+          }
         </tbody>
       </table>
     </div>
@@ -2439,6 +2954,8 @@ function renderTopRegulars(rows) {
 }
 
 function renderVenueAverages(rows) {
+  if (!rows.length) return "";
+
   const max = Math.max(...rows.map((row) => row.average), 1);
   return `
     <div class="venue-block">
@@ -2504,9 +3021,9 @@ function renderSignIn(session) {
           <span>New profile</span>
         </div>
         <form class="new-attendee-form" id="new-attendee-form">
-          <label>Full name <input name="name" autocomplete="name" required /></label>
+          <label><span>Full name</span><input name="name" autocomplete="name" required /></label>
           <div class="form-row">
-            <label>Email <input name="email" type="email" autocomplete="email" /></label>
+            <label><span>${escapeHtml(activeAgeGroup === "Junior" ? "Parent/Guardian contact email" : "Email")}</span><input name="email" type="email" autocomplete="email" /></label>
             <fieldset class="age-toggle">
               <legend>Junior / Adult</legend>
               ${AGE_GROUPS.map(
@@ -2518,7 +3035,7 @@ function renderSignIn(session) {
               ).join("")}
             </fieldset>
           </div>
-          <label>Emergency phone <input name="phone" autocomplete="tel" /></label>
+          <label><span>Emergency phone</span><input name="phone" autocomplete="tel" /></label>
           <button class="button button-check" type="button" data-action="submit-new-attendee">
             ${icons.check}
             <span>Check in new attendee</span>
@@ -2559,7 +3076,7 @@ function getSearchResults(query, checkedInIds) {
   const scored = state.profiles
     .map((profile) => {
       const attendanceCount = state.attendance.filter((record) => record.attendeeId === profile.id).length;
-      const text = `${profile.name} ${profile.email}`.toLowerCase();
+      const text = `${profile.name} ${getProfileEmails(profile).join(" ")} ${getProfilePhones(profile).join(" ")}`.toLowerCase();
       const matchScore = normalizedQuery ? (text.includes(normalizedQuery) ? 100 : -100) : 0;
       return { profile, attendanceCount, score: matchScore + attendanceCount };
     })
@@ -2583,7 +3100,7 @@ function renderSearchResults(results, checkedInIds) {
           <span class="avatar">${escapeHtml(initials(profile.name))}</span>
           <span class="result-main">
             <strong>${escapeHtml(profile.name)}</strong>
-            <small>${escapeHtml(profile.email || "No email")} <i>${attendanceCount} visits</i></small>
+            <small>${escapeHtml(formatProfileContacts(profile))} <i>${attendanceCount} visits</i></small>
           </span>
           <span class="result-age">${escapeHtml(profile.ageGroup || "Unknown")}</span>
           <span class="result-check">${checkedIn ? icons.check : ""}</span>
@@ -2663,9 +3180,9 @@ function renderNewPlayerModal() {
           <button class="icon-button" data-action="close-modal" aria-label="Close">x</button>
         </div>
         <form class="new-attendee-form" id="new-attendee-form">
-          <label>Full name <input name="name" autocomplete="name" required /></label>
+          <label><span>Full name</span><input name="name" autocomplete="name" required /></label>
           <div class="form-row">
-            <label>Email <input name="email" type="email" autocomplete="email" /></label>
+            <label><span>${escapeHtml(activeAgeGroup === "Junior" ? "Parent/Guardian contact email" : "Email")}</span><input name="email" type="email" autocomplete="email" /></label>
             <fieldset class="age-toggle">
               <legend>Junior / Adult</legend>
               ${AGE_GROUPS.map(
@@ -2677,7 +3194,7 @@ function renderNewPlayerModal() {
               ).join("")}
             </fieldset>
           </div>
-          <label>Emergency phone <input name="phone" autocomplete="tel" /></label>
+          <label><span>Emergency phone</span><input name="phone" autocomplete="tel" /></label>
           <button class="button button-check" type="button" data-action="submit-new-attendee">
             ${icons.check}
             <span>Check in new player</span>
@@ -2688,12 +3205,23 @@ function renderNewPlayerModal() {
   `;
 }
 
-function restoreSearchField() {
+function restoreSearchField(wasSearchFocused = false) {
   const searchInput = document.querySelector("#attendee-search");
-  if (searchInput && document.activeElement && document.activeElement.id === "attendee-search") {
+  const shouldFocusSignInSearch =
+    activeView === "signin" &&
+    !modalOpen &&
+    !newPlayerModalOpen &&
+    !exportMenuOpen &&
+    !sessionMenuOpen &&
+    !rangeMenuOpen;
+  if (!searchInput || (!wasSearchFocused && !shouldFocusSignInSearch)) return;
+
+  try {
+    searchInput.focus({ preventScroll: true });
+  } catch {
     searchInput.focus();
-    searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
   }
+  searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
 }
 
 function handleClick(event) {
@@ -2701,9 +3229,11 @@ function handleClick(event) {
   if (!target) {
     const shouldCloseExportMenu = exportMenuOpen && !event.target.closest(".export-wrap");
     const shouldCloseSessionMenu = sessionMenuOpen && !event.target.closest(".session-picker");
-    if (shouldCloseExportMenu || shouldCloseSessionMenu) {
+    const shouldCloseRangeMenu = rangeMenuOpen && !event.target.closest(".range-picker");
+    if (shouldCloseExportMenu || shouldCloseSessionMenu || shouldCloseRangeMenu) {
       exportMenuOpen = false;
       sessionMenuOpen = false;
+      rangeMenuOpen = false;
       render();
     }
     return;
@@ -2714,6 +3244,7 @@ function handleClick(event) {
     activeView = target.dataset.view;
     exportMenuOpen = false;
     sessionMenuOpen = false;
+    rangeMenuOpen = false;
     render();
     return;
   }
@@ -2726,17 +3257,32 @@ function handleClick(event) {
   if (action === "toggle-export") {
     exportMenuOpen = !exportMenuOpen;
     sessionMenuOpen = false;
+    rangeMenuOpen = false;
     render();
   }
   if (action === "toggle-session-menu") {
     sessionMenuOpen = !sessionMenuOpen;
     exportMenuOpen = false;
+    rangeMenuOpen = false;
+    render();
+  }
+  if (action === "toggle-range-menu") {
+    rangeMenuOpen = !rangeMenuOpen;
+    exportMenuOpen = false;
+    sessionMenuOpen = false;
+    render();
+  }
+  if (action === "set-range-preset") {
+    analyticsRange = normalizeAnalyticsRange({ ...analyticsRange, preset: target.dataset.rangePreset });
+    rangeMenuOpen = false;
+    persist();
     render();
   }
   if (action === "select-session") {
     activeSessionId = target.dataset.sessionId;
     searchQuery = "";
     sessionMenuOpen = false;
+    rangeMenuOpen = false;
     persist();
     render();
   }
@@ -2748,6 +3294,7 @@ function handleClick(event) {
     modalOpen = true;
     exportMenuOpen = false;
     sessionMenuOpen = false;
+    rangeMenuOpen = false;
     render();
   }
   if (action === "open-new-player") {
@@ -2771,6 +3318,44 @@ function handleInput(event) {
     searchQuery = event.target.value;
     updateSearchResults();
   }
+}
+
+function handleChange(event) {
+  const field = event.target.dataset.rangeField;
+  if (!field) return;
+  analyticsRange = normalizeAnalyticsRange({
+    ...analyticsRange,
+    preset: "custom",
+    [field]: event.target.value,
+  });
+  rangeMenuOpen = true;
+  persist();
+  render();
+}
+
+function setTrendPointActive(target, isActive) {
+  const point = target.closest && target.closest(".trend-point");
+  if (!point) return;
+  if (isActive) point.dataset.active = "true";
+  else delete point.dataset.active;
+}
+
+function handlePointerOver(event) {
+  setTrendPointActive(event.target, true);
+}
+
+function handlePointerOut(event) {
+  const point = event.target.closest && event.target.closest(".trend-point");
+  if (!point || (event.relatedTarget && point.contains(event.relatedTarget))) return;
+  delete point.dataset.active;
+}
+
+function handleFocusIn(event) {
+  setTrendPointActive(event.target, true);
+}
+
+function handleFocusOut(event) {
+  setTrendPointActive(event.target, false);
 }
 
 function updateSearchResults() {
@@ -2830,36 +3415,32 @@ function submitNewAttendee(form) {
   const name = normalizeText(data.get("name"));
   if (!name) return;
   const email = normalizeEmail(data.get("email"));
-  const emergencyPhone = normalizeText(data.get("phone"));
+  const emergencyPhone = normalizePhone(data.get("phone"));
   let profile = findExistingProfile({ name, email });
+  const profileDetails = {
+    name,
+    email,
+    ageGroup: activeAgeGroup,
+    emergencyPhone,
+    notes: "",
+    createdAt: new Date().toISOString(),
+  };
   if (!profile) {
-    profile = {
+    profile = normalizeProfile({
       id: uid("p"),
-      name,
-      email,
-      ageGroup: activeAgeGroup,
-      emergencyPhone,
-      notes: "",
-      createdAt: new Date().toISOString(),
-    };
+      ...profileDetails,
+    });
     state.profiles.push(profile);
-    } else {
-      if (!profile.email) profile.email = email;
-      if (!profile.emergencyPhone) profile.emergencyPhone = emergencyPhone;
-      if (!profile.ageGroup) profile.ageGroup = activeAgeGroup;
-    }
+  } else {
+    mergeProfileInfo(profile, profileDetails);
+  }
   newPlayerModalOpen = false;
   checkInProfile(profile.id);
 }
 
 function findExistingProfile(candidate) {
-  const candidateEmail = normalizeEmail(candidate.email);
-  const candidateName = normalizeText(candidate.name).toLowerCase();
-  return state.profiles.find((profile) => {
-    const emailMatch = candidateEmail && normalizeEmail(profile.email) === candidateEmail;
-    const nameMatch = normalizeText(profile.name).toLowerCase() === candidateName;
-    return emailMatch || nameMatch;
-  });
+  const candidateKey = profileKey(candidate);
+  return state.profiles.find((profile) => profileKey(profile) === candidateKey);
 }
 
 function checkInProfile(profileId) {
@@ -2877,9 +3458,9 @@ function checkInProfile(profileId) {
     sessionId: activeSessionId,
     attendeeId: profile.id,
     name: profile.name,
-    email: profile.email,
+    email: profile.email || getProfileEmails(profile)[0] || "",
     ageGroup: profile.ageGroup || "Unknown",
-    emergencyPhone: profile.emergencyPhone || "",
+    emergencyPhone: profile.emergencyPhone || getProfilePhones(profile)[0] || "",
     checkedInAt: new Date().toISOString(),
     source: "local",
   });
@@ -2931,24 +3512,29 @@ async function handleWorkbookImport(event) {
 }
 
 function mergeImportedProfiles(importedProfiles, localProfiles, importedAttendance, localAttendance) {
-  const profiles = [...importedProfiles];
+  const imported = normalizeProfileState(importedProfiles, importedAttendance);
+  const local = normalizeProfileState(localProfiles, localAttendance);
+  const profiles = [...imported.profiles];
   const remap = new Map();
-  for (const local of localProfiles) {
-    const existing = profiles.find((profile) => profileKey(profile) === profileKey(local));
+  for (const localProfile of local.profiles) {
+    const existing = profiles.find((profile) => profileKey(profile) === profileKey(localProfile));
     if (existing) {
-      remap.set(local.id, existing.id);
-      if (!existing.lastSeenAt) existing.lastSeenAt = local.lastSeenAt;
-      if (!existing.emergencyPhone) existing.emergencyPhone = local.emergencyPhone;
+      remap.set(localProfile.id, existing.id);
+      mergeProfileInfo(existing, localProfile);
     } else {
-      profiles.push(local);
-      remap.set(local.id, local.id);
+      profiles.push(localProfile);
+      remap.set(localProfile.id, localProfile.id);
     }
   }
-  const mappedLocalAttendance = localAttendance.map((record) => ({
+  const mappedLocalAttendance = local.attendance.map((record) => ({
     ...record,
     attendeeId: remap.get(record.attendeeId) || record.attendeeId,
   }));
-  return { profiles, importedAttendance, localAttendance: mappedLocalAttendance };
+  return {
+    profiles: profiles.sort((a, b) => a.name.localeCompare(b.name)),
+    importedAttendance: imported.attendance,
+    localAttendance: mappedLocalAttendance,
+  };
 }
 
 async function parseWorkbook(file) {
@@ -2994,32 +3580,36 @@ async function parseWorkbook(file) {
       if (!name) continue;
       const email = normalizeEmail(emailIndex >= 0 ? row[emailIndex] : "");
       const ageGroup = normalizeAgeGroup(ageIndex >= 0 ? row[ageIndex] : "");
-      const emergencyPhone = normalizeText(phoneIndex >= 0 ? row[phoneIndex] : "");
-      const key = email || name.toLowerCase();
+      const emergencyPhone = normalizePhone(phoneIndex >= 0 ? row[phoneIndex] : "");
+      const notes = normalizeText(noteIndex >= 0 ? row[noteIndex] : "");
+      const checkedInAt = `${date}T18:00:00.000`;
+      const key = profileKey({ name });
 
       if (!profileMap.has(key)) {
-        profileMap.set(key, {
+        profileMap.set(key, normalizeProfile({
           id: uid("p"),
           name,
           email,
           ageGroup,
           emergencyPhone: /as above|same as/i.test(emergencyPhone) ? "" : emergencyPhone,
-          notes: "",
-          createdAt: `${date}T18:00:00.000`,
-        });
+          notes,
+          createdAt: checkedInAt,
+          lastSeenAt: checkedInAt,
+        }));
       } else {
         const profile = profileMap.get(key);
-        if (!profile.email && email) profile.email = email;
-        if ((!profile.ageGroup || profile.ageGroup === "Unknown") && ageGroup !== "Unknown") {
-          profile.ageGroup = ageGroup;
-        }
-        if (!profile.emergencyPhone && emergencyPhone && !/as above|same as/i.test(emergencyPhone)) {
-          profile.emergencyPhone = emergencyPhone;
-        }
+        mergeProfileInfo(profile, {
+          name,
+          email,
+          ageGroup,
+          emergencyPhone,
+          notes,
+          createdAt: checkedInAt,
+          lastSeenAt: checkedInAt,
+        });
       }
 
       const profile = profileMap.get(key);
-      profile.lastSeenAt = `${date}T18:00:00.000`;
       attendance.push({
         id: uid("a"),
         sessionId: session.id,
@@ -3028,8 +3618,8 @@ async function parseWorkbook(file) {
         email,
         ageGroup,
         emergencyPhone,
-        notes: normalizeText(noteIndex >= 0 ? row[noteIndex] : ""),
-        checkedInAt: `${date}T18:00:00.000`,
+        notes,
+        checkedInAt,
         source: "legacy-import",
       });
       session.legacyAttendance += 1;
@@ -3091,12 +3681,13 @@ async function handleJsonImport(event) {
     if (!Array.isArray(imported.sessions) || !Array.isArray(imported.profiles) || !Array.isArray(imported.attendance)) {
       throw new Error("JSON file is not an MK Chess export");
     }
+    const normalizedPeople = normalizeProfileState(imported.profiles, imported.attendance);
     state = {
       version: 1,
       hasPrivateImport: Boolean(imported.hasPrivateImport),
       sessions: mergeSessions(imported.sessions, LEGACY_SESSIONS),
-      profiles: imported.profiles,
-      attendance: imported.attendance,
+      profiles: normalizedPeople.profiles,
+      attendance: normalizedPeople.attendance,
       importedAt: imported.importedAt || new Date().toISOString(),
     };
     activeSessionId = imported.activeSessionId || latestSessionId(state.sessions);
@@ -3172,7 +3763,12 @@ function showToast(message, isError = false) {
 
 document.addEventListener("click", handleClick);
 document.addEventListener("input", handleInput);
+document.addEventListener("change", handleChange);
 document.addEventListener("submit", handleSubmit);
+document.addEventListener("pointerover", handlePointerOver);
+document.addEventListener("pointerout", handlePointerOut);
+document.addEventListener("focusin", handleFocusIn);
+document.addEventListener("focusout", handleFocusOut);
 workbookInput.addEventListener("change", handleWorkbookImport);
 jsonInput.addEventListener("change", handleJsonImport);
 
