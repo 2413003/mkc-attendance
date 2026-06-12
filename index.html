@@ -2147,14 +2147,13 @@ function renderTodaySummary(session, currentRecords, analytics) {
 function renderInsightsPage(analytics) {
   const junior = analytics.groupTotals.junior;
   const adult = analytics.groupTotals.adult;
-  const activeNote = state.hasPrivateImport ? "Private roster loaded" : "Aggregate history";
 
   return `
     <main class="app-view insights-view">
       <section class="page-head">
         <div>
           <h1>Insights</h1>
-          <p>${analytics.sessions.length} sessions Â· Feb - Jun 2026 Â· ${activeNote}</p>
+          <p>${analytics.sessions.length} sessions &middot; Feb - Jun 2026</p>
         </div>
       </section>
 
@@ -2249,13 +2248,12 @@ function renderDashboard(analytics) {
   const totalKnown = junior + adult;
   const juniorShare = totalKnown ? Math.round((junior / totalKnown) * 100) : 0;
   const adultShare = totalKnown ? 100 - juniorShare : 0;
-  const activeNote = state.hasPrivateImport ? "Private roster loaded" : "Aggregate history";
 
   return `
     <div class="section-heading">
       <div>
         <h1>Attendance overview</h1>
-        <p>${icons.calendar} ${analytics.sessions.length} sessions <span></span> Feb - Jun 2026 <span></span> ${activeNote}</p>
+        <p>${icons.calendar} ${analytics.sessions.length} sessions <span></span> Feb - Jun 2026</p>
       </div>
     </div>
 
