@@ -434,6 +434,17 @@ svg {
   font-weight: 650;
 }
 
+.kiosk-result-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.kiosk-result-name strong {
+  min-width: 0;
+}
+
 .kiosk-result-icon {
   display: grid;
   place-items: center;
@@ -708,8 +719,12 @@ input::placeholder {
 }
 
 .result-age {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--muted);
   font-size: 13px;
+  white-space: nowrap;
 }
 
 .result-check {
@@ -720,6 +735,24 @@ input::placeholder {
   color: #ffffff;
   background: var(--green);
   border-radius: 50%;
+}
+
+.missing-contact-badge {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 50%;
+}
+
+.missing-contact-badge svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2.4;
 }
 
 .soft-note {
@@ -746,6 +779,13 @@ input::placeholder {
 .new-session-form label > span {
   display: block;
   min-height: 18px;
+}
+
+.form-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .new-attendee-form input,
@@ -1843,6 +1883,10 @@ const DATE_RANGE_PRESETS = [
 const app = document.querySelector("#app");
 const workbookInput = document.querySelector("#workbook-import");
 const jsonInput = document.querySelector("#json-import");
+const AUTO_WORKBOOK_PATHS = [
+  "./%28copy%29%2004.02.2026%20bletchley%20mk%20chess%20session%20attendance.xlsx",
+  "./(copy) 04.02.2026 bletchley mk chess session attendance.xlsx",
+];
 
 resetLocalDataFromUrl();
 
@@ -1857,7 +1901,9 @@ let sessionMenuOpen = false;
 let rangeMenuOpen = false;
 let modalOpen = false;
 let newPlayerModalOpen = false;
+let emergencyContactProfileId = "";
 let toastTimer = null;
+let autoWorkbookImportStarted = false;
 
 const icons = {
   calendar:
@@ -1876,6 +1922,8 @@ const icons = {
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
   refresh:
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 4v6h-6"/></svg>',
+  alert:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 7v6"/><path d="M12 17h.01"/></svg>',
   search:
     '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
   upload:
@@ -2082,6 +2130,46 @@ function profileKey(profile) {
   return normalizeText(profile && profile.name).toLowerCase() || normalizeEmail(profile && profile.email);
 }
 
+function nameTokens(name) {
+  return normalizeText(name)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .split(" ")
+    .filter(Boolean);
+}
+
+function isTokenSubset(sourceTokens, targetTokens) {
+  if (!sourceTokens.length || !targetTokens.length) return false;
+  const target = new Set(targetTokens);
+  return sourceTokens.every((token) => target.has(token));
+}
+
+function namesLookLikeSamePlayer(firstName, secondName) {
+  const firstTokens = nameTokens(firstName);
+  const secondTokens = nameTokens(secondName);
+  if (!firstTokens.length || !secondTokens.length) return false;
+  return isTokenSubset(firstTokens, secondTokens) || isTokenSubset(secondTokens, firstTokens);
+}
+
+function profilesShareContact(firstProfile, secondProfile) {
+  const secondEmails = new Set(getProfileEmails(secondProfile));
+  const secondPhones = new Set(getProfilePhones(secondProfile).map(phoneKey));
+  const hasSharedEmail = getProfileEmails(firstProfile).some((email) => secondEmails.has(email));
+  const hasSharedPhone = getProfilePhones(firstProfile).some((phone) => secondPhones.has(phoneKey(phone)));
+  return hasSharedEmail || hasSharedPhone;
+}
+
+function profilesCanMerge(firstProfile, secondProfile) {
+  const firstKey = profileKey(firstProfile);
+  const secondKey = profileKey(secondProfile);
+  if (firstKey && secondKey && firstKey === secondKey) return true;
+  return profilesShareContact(firstProfile, secondProfile) && namesLookLikeSamePlayer(firstProfile.name, secondProfile.name);
+}
+
+function findProfileMergeTarget(profiles, candidate) {
+  return profiles.find((profile) => profilesCanMerge(profile, candidate));
+}
+
 function normalizeProfile(profile) {
   const normalized = {
     ...profile,
@@ -2129,17 +2217,18 @@ function mergeProfileCopies(profiles) {
   for (const rawProfile of profiles.filter(Boolean)) {
     const profile = normalizeProfile(rawProfile);
     const key = profileKey(profile) || profile.id || uid("profile");
-    const existing = byKey.get(key);
+    const existing = byKey.get(key) || findProfileMergeTarget([...new Set(byKey.values())], profile);
     if (existing) {
       mergeProfileInfo(existing, profile);
       remap.set(profile.id, existing.id);
+      byKey.set(key, existing);
     } else {
       byKey.set(key, profile);
       remap.set(profile.id, profile.id);
     }
   }
   return {
-    profiles: [...byKey.values()].sort((a, b) => a.name.localeCompare(b.name)),
+    profiles: [...new Set(byKey.values())].sort((a, b) => a.name.localeCompare(b.name)),
     remap,
   };
 }
@@ -2428,9 +2517,11 @@ function render() {
     </div>
     ${modalOpen ? renderNewSessionModal() : ""}
     ${newPlayerModalOpen ? renderNewPlayerModal() : ""}
+    ${emergencyContactProfileId ? renderEmergencyContactModal() : ""}
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   `;
   restoreSearchField(wasSearchFocused);
+  restoreEmergencyContactField();
 }
 
 function renderHeader(activeSession) {
@@ -3102,7 +3193,7 @@ function renderSearchResults(results, checkedInIds) {
             <strong>${escapeHtml(profile.name)}</strong>
             <small>${escapeHtml(formatProfileContacts(profile))} <i>${attendanceCount} visits</i></small>
           </span>
-          <span class="result-age">${escapeHtml(profile.ageGroup || "Unknown")}</span>
+          <span class="result-age">${escapeHtml(profile.ageGroup || "Unknown")}${renderMissingEmergencyContactBadge(profile)}</span>
           <span class="result-check">${checkedIn ? icons.check : ""}</span>
         </button>
       `;
@@ -3118,7 +3209,10 @@ function renderKioskResults(results, checkedInIds) {
       return `
         <button class="kiosk-result ${checkedIn ? "is-checked" : ""}" data-action="check-in-profile" data-profile-id="${escapeHtml(profile.id)}" ${checkedIn ? "disabled" : ""}>
           <span class="avatar">${escapeHtml(initials(profile.name))}</span>
-          <strong>${escapeHtml(profile.name)}</strong>
+          <span class="kiosk-result-name">
+            <strong>${escapeHtml(profile.name)}</strong>
+            ${renderMissingEmergencyContactBadge(profile)}
+          </span>
           <span class="kiosk-result-icon">${checkedIn ? icons.check : icons.arrowRight}</span>
         </button>
       `;
@@ -3133,6 +3227,19 @@ function renderKioskSearchResults(results, checkedInIds) {
     return `<div class="kiosk-empty">No saved players yet</div>`;
   }
   return `<div class="kiosk-empty">No matching player</div>`;
+}
+
+function isJuniorMissingEmergencyPhone(profile) {
+  return normalizeAgeGroup(profile && profile.ageGroup) === "Junior" && !getProfilePhones(profile).length;
+}
+
+function renderMissingEmergencyContactBadge(profile) {
+  if (!isJuniorMissingEmergencyPhone(profile)) return "";
+  return `
+    <span class="missing-contact-badge" title="Junior missing emergency contact phone" aria-label="Junior missing emergency contact phone">
+      ${icons.alert}
+    </span>
+  `;
 }
 
 function renderNewSessionModal() {
@@ -3205,12 +3312,38 @@ function renderNewPlayerModal() {
   `;
 }
 
+function renderEmergencyContactModal() {
+  const profile = state.profiles.find((item) => item.id === emergencyContactProfileId);
+  if (!profile) return "";
+  return `
+    <div class="modal-backdrop" role="presentation" data-action="close-modal">
+      <section class="modal emergency-modal" role="dialog" aria-modal="true" aria-labelledby="emergency-contact-title">
+        <div class="panel-title">
+          <h2 id="emergency-contact-title">Emergency contact needed</h2>
+          <button class="icon-button" data-action="close-modal" aria-label="Close">x</button>
+        </div>
+        <form class="new-attendee-form" id="emergency-contact-form">
+          <p class="form-note">
+            ${escapeHtml(profile.name)} is marked as a junior, so an emergency contact phone number is required before sign-in.
+          </p>
+          <label><span>Emergency phone</span><input id="emergency-phone-input" name="phone" autocomplete="tel" required /></label>
+          <button class="button button-check" type="submit">
+            ${icons.check}
+            <span>Save and check in</span>
+          </button>
+        </form>
+      </section>
+    </div>
+  `;
+}
+
 function restoreSearchField(wasSearchFocused = false) {
   const searchInput = document.querySelector("#attendee-search");
   const shouldFocusSignInSearch =
     activeView === "signin" &&
     !modalOpen &&
     !newPlayerModalOpen &&
+    !emergencyContactProfileId &&
     !exportMenuOpen &&
     !sessionMenuOpen &&
     !rangeMenuOpen;
@@ -3222,6 +3355,17 @@ function restoreSearchField(wasSearchFocused = false) {
     searchInput.focus();
   }
   searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+}
+
+function restoreEmergencyContactField() {
+  if (!emergencyContactProfileId) return;
+  const phoneInput = document.querySelector("#emergency-phone-input");
+  if (!phoneInput) return;
+  try {
+    phoneInput.focus({ preventScroll: true });
+  } catch {
+    phoneInput.focus();
+  }
 }
 
 function handleClick(event) {
@@ -3299,12 +3443,14 @@ function handleClick(event) {
   }
   if (action === "open-new-player") {
     newPlayerModalOpen = true;
+    emergencyContactProfileId = "";
     render();
   }
   if (action === "close-modal") {
     if (event.target === target || target.classList.contains("icon-button")) {
       modalOpen = false;
       newPlayerModalOpen = false;
+      emergencyContactProfileId = "";
       render();
     }
   }
@@ -3376,6 +3522,12 @@ function updateSearchResults() {
 }
 
 function handleSubmit(event) {
+  if (event.target.id === "emergency-contact-form") {
+    event.preventDefault();
+    submitEmergencyContact(event.target);
+    return;
+  }
+
   if (event.target.id === "new-attendee-form") {
     event.preventDefault();
     submitNewAttendee(event.target);
@@ -3438,12 +3590,27 @@ function submitNewAttendee(form) {
   checkInProfile(profile.id);
 }
 
+function submitEmergencyContact(form) {
+  if (!form) return;
+  const profile = state.profiles.find((item) => item.id === emergencyContactProfileId);
+  if (!profile) return;
+  const data = new FormData(form);
+  const emergencyPhone = normalizePhone(data.get("phone"));
+  if (!emergencyPhone) {
+    showToast("Emergency phone is required for juniors", true);
+    return;
+  }
+  setProfileContacts(profile, getProfileEmails(profile), [...getProfilePhones(profile), emergencyPhone]);
+  emergencyContactProfileId = "";
+  checkInProfile(profile.id, { skipEmergencyCheck: true });
+}
+
 function findExistingProfile(candidate) {
   const candidateKey = profileKey(candidate);
   return state.profiles.find((profile) => profileKey(profile) === candidateKey);
 }
 
-function checkInProfile(profileId) {
+function checkInProfile(profileId, options = {}) {
   const profile = state.profiles.find((item) => item.id === profileId);
   if (!profile) return;
   const existing = state.attendance.find(
@@ -3451,6 +3618,16 @@ function checkInProfile(profileId) {
   );
   if (existing) {
     showToast(`${profile.name} is already checked in`);
+    return;
+  }
+  if (!options.skipEmergencyCheck && isJuniorMissingEmergencyPhone(profile)) {
+    emergencyContactProfileId = profile.id;
+    modalOpen = false;
+    newPlayerModalOpen = false;
+    exportMenuOpen = false;
+    sessionMenuOpen = false;
+    rangeMenuOpen = false;
+    render();
     return;
   }
   state.attendance.push({
@@ -3483,32 +3660,72 @@ async function handleWorkbookImport(event) {
   event.target.value = "";
   if (!file) return;
   try {
-    if (!window.XLSX) throw new Error("Spreadsheet importer did not load");
-    const imported = await parseWorkbook(file);
-    const localSessions = state.sessions.filter((session) => session.source === "local");
-    const localAttendance = state.attendance.filter((record) => {
-      const session = state.sessions.find((item) => item.id === record.sessionId);
-      return session && session.source === "local";
-    });
-    const localProfiles = state.profiles.filter((profile) =>
-      localAttendance.some((record) => record.attendeeId === profile.id),
-    );
-    const merged = mergeImportedProfiles(imported.profiles, localProfiles, imported.attendance, localAttendance);
-    state = {
-      ...state,
-      hasPrivateImport: true,
-      sessions: mergeSessions([...imported.sessions, ...localSessions], []),
-      profiles: merged.profiles,
-      attendance: [...merged.importedAttendance, ...merged.localAttendance],
-      importedAt: new Date().toISOString(),
-    };
-    activeSessionId = latestSessionId(state.sessions);
-    persist();
-    render();
-    showToast(`Imported ${imported.attendance.length} check-ins`);
+    const importedCount = await importWorkbookFile(file);
+    showToast(`Imported ${importedCount} check-ins`);
   } catch (error) {
     showToast(error.message || "Workbook import failed", true);
   }
+}
+
+async function importWorkbookFile(file, options = {}) {
+  if (!window.XLSX) throw new Error("Spreadsheet importer did not load");
+  const imported = await parseWorkbook(file);
+  const localSessions = state.sessions.filter(isLiveSession);
+  const localAttendance = state.attendance.filter((record) => {
+    const session = state.sessions.find((item) => item.id === record.sessionId);
+    return session && isLiveSession(session);
+  });
+  const localProfiles = state.profiles.filter((profile) =>
+    localAttendance.some((record) => record.attendeeId === profile.id),
+  );
+  const merged = mergeImportedProfiles(imported.profiles, localProfiles, imported.attendance, localAttendance);
+  state = {
+    ...state,
+    hasPrivateImport: true,
+    sessions: mergeSessions([...imported.sessions, ...localSessions], []),
+    profiles: merged.profiles,
+    attendance: [...merged.importedAttendance, ...merged.localAttendance],
+    importedAt: new Date().toISOString(),
+  };
+  activeSessionId = options.keepActiveSession ? activeSessionId : latestSessionId(state.sessions);
+  persist();
+  render();
+  return imported.attendance.length;
+}
+
+function isLiveSession(session) {
+  return session && (session.source === "local" || session.source === "current");
+}
+
+async function maybeAutoImportWorkbook() {
+  if (autoWorkbookImportStarted || state.hasPrivateImport || state.profiles.length || !window.XLSX) return;
+  if (window.location.protocol === "file:") return;
+  autoWorkbookImportStarted = true;
+
+  for (const workbookPath of AUTO_WORKBOOK_PATHS) {
+    try {
+      const response = await fetch(workbookPath, { cache: "no-store" });
+      if (!response.ok) continue;
+      const buffer = await response.arrayBuffer();
+      if (!looksLikeWorkbookBuffer(buffer)) continue;
+      const file = {
+        name: decodeURIComponent(workbookPath.split("/").pop() || "attendance.xlsx"),
+        arrayBuffer: () => Promise.resolve(buffer),
+      };
+      await importWorkbookFile(file, { keepActiveSession: true });
+      return;
+    } catch {
+      // The workbook is optional on public hosting; manual import still works.
+    }
+  }
+}
+
+function looksLikeWorkbookBuffer(buffer) {
+  if (!buffer || buffer.byteLength < 4) return false;
+  const bytes = new Uint8Array(buffer.slice(0, 4));
+  const isXlsx = bytes[0] === 0x50 && bytes[1] === 0x4b;
+  const isXls = bytes[0] === 0xd0 && bytes[1] === 0xcf && bytes[2] === 0x11 && bytes[3] === 0xe0;
+  return isXlsx || isXls;
 }
 
 function mergeImportedProfiles(importedProfiles, localProfiles, importedAttendance, localAttendance) {
@@ -3517,7 +3734,7 @@ function mergeImportedProfiles(importedProfiles, localProfiles, importedAttendan
   const profiles = [...imported.profiles];
   const remap = new Map();
   for (const localProfile of local.profiles) {
-    const existing = profiles.find((profile) => profileKey(profile) === profileKey(localProfile));
+    const existing = findProfileMergeTarget(profiles, localProfile);
     if (existing) {
       remap.set(localProfile.id, existing.id);
       mergeProfileInfo(existing, localProfile);
@@ -3545,21 +3762,21 @@ async function parseWorkbook(file) {
   const attendance = [];
 
   for (const sheetName of workbook.SheetNames) {
-    if (!/^\d{2}\.\d{2}\.\d{4}$/.test(sheetName)) continue;
+    const date = parseSheetDate(sheetName);
+    if (!date) continue;
     const rows = window.XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
       header: 1,
       defval: "",
       raw: false,
     });
     if (!rows.length) continue;
-    const date = parseSheetDate(sheetName);
-    const headers = rows[0].map(normalizeText);
-    const nameIndex = headers.findIndex((header) => /player/i.test(header));
-    if (nameIndex < 0) continue;
-    const ageIndex = headers.findIndex((header) => /junior|adult/i.test(header));
-    const emailIndex = headers.findIndex((header) => /email/i.test(header));
-    const phoneIndex = headers.findIndex((header) => /emergency|phone/i.test(header));
-    const noteIndex = headers.findIndex((header) => /note|status|consent|photo|membership/i.test(header));
+    const headerRow = findAttendanceHeaderRow(rows);
+    if (!headerRow) continue;
+    const { headers, rowIndex: headerRowIndex, nameIndex } = headerRow;
+    const ageIndex = findHeaderIndex(headers, [/junior|adult|age|jnr/i]);
+    const emailIndex = findHeaderIndex(headers, [/e-?mail/i]);
+    const phoneIndex = findHeaderIndex(headers, [/emergency|phone|mobile|tel/i]);
+    const noteIndex = findHeaderIndex(headers, [/note|status|consent|photo|membership/i]);
     const session = {
       id: `s-${date}`,
       date,
@@ -3574,10 +3791,10 @@ async function parseWorkbook(file) {
       legacyUnknown: 0,
     };
 
-    for (let rowIndex = 1; rowIndex < rows.length; rowIndex += 1) {
+    for (let rowIndex = headerRowIndex + 1; rowIndex < rows.length; rowIndex += 1) {
       const row = rows[rowIndex] || [];
       const name = normalizeText(row[nameIndex]);
-      if (!name) continue;
+      if (!name || name.toLowerCase() === headers[nameIndex].toLowerCase()) continue;
       const email = normalizeEmail(emailIndex >= 0 ? row[emailIndex] : "");
       const ageGroup = normalizeAgeGroup(ageIndex >= 0 ? row[ageIndex] : "");
       const emergencyPhone = normalizePhone(phoneIndex >= 0 ? row[phoneIndex] : "");
@@ -3640,8 +3857,44 @@ async function parseWorkbook(file) {
 }
 
 function parseSheetDate(name) {
-  const [day, month, year] = name.split(".").map(Number);
+  const match = String(name || "").match(/(^|[^\d])(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?=$|[^\d])/);
+  if (!match) return "";
+  const day = Number(match[2]);
+  const month = Number(match[3]);
+  let year = Number(match[4]);
+  if (year < 100) year += year < 50 ? 2000 : 1900;
+  const parsed = new Date(year, month - 1, day);
+  if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) {
+    return "";
+  }
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function findAttendanceHeaderRow(rows) {
+  const maxRows = Math.min(rows.length, 12);
+  for (let rowIndex = 0; rowIndex < maxRows; rowIndex += 1) {
+    const headers = (rows[rowIndex] || []).map(normalizeText);
+    const nameIndex = findNameHeaderIndex(headers);
+    if (nameIndex >= 0) return { headers, nameIndex, rowIndex };
+  }
+  return null;
+}
+
+function findNameHeaderIndex(headers) {
+  return findHeaderIndex(
+    headers,
+    [/\bplayer\b/i, /\bfull name\b/i, /^name$/i, /\battendee\b/i, /\bmember\b/i, /\bchild\b/i],
+    [/contact/i, /email/i, /phone/i, /emergency/i, /guardian/i, /parent/i, /junior/i, /adult/i, /elo/i],
+  );
+}
+
+function findHeaderIndex(headers, includePatterns, excludePatterns = []) {
+  return headers.findIndex((header) => {
+    const text = normalizeText(header);
+    if (!text) return false;
+    if (excludePatterns.some((pattern) => pattern.test(text))) return false;
+    return includePatterns.some((pattern) => pattern.test(text));
+  });
 }
 
 function inferSessionType(date) {
@@ -3773,7 +4026,7 @@ workbookInput.addEventListener("change", handleWorkbookImport);
 jsonInput.addEventListener("change", handleJsonImport);
 
 render();
-
+maybeAutoImportWorkbook();
 
     </script>
   </body>
